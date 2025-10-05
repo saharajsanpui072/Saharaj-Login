@@ -1,6 +1,6 @@
 {
   "showDialog": true,
-  "title": "🔐 SAHARAJ EXE LOGIN V1",
+  "title": "🔐 SAHARAJ EXE LOGIN ",
   "description": "Please login to continue using this app.",
   "button": "LOGIN",
   "toast": "✅ Successfully Logged In!",
@@ -10,7 +10,7 @@
       "device_id": "fbd988929968124f",
       "username": "SAHARAJ",
       "password": "FF",
-      "expire_date": "2025-10-03"
+      "expire_date": "2025-10-05"
     },
     {
       "device_id": "abcdef9876543210",
