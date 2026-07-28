@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WOLF CLASS - Reseller Console</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #ff4a4a;
+            --success-color: #38ef7d;
+            --info-color: #0072ff;
+            --warning-color: #f1c40f;
+            --neon-blue: #00f3ff;
+            --bg-color: #05070c;
+            --glass-bg: rgba(22, 25, 34, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --text-color: #ffffff;
+            --text-dim: #a0a5b5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0; padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            width: 250px; height: 250px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #0072ff, #00f3ff);
+            filter: blur(100px);
+            z-index: -1;
+            top: 5%; left: 5%;
+        }
+
+        .reseller-container {
+            width: 100%;
+            max-width: 430px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: relative;
+        }
+
+        /* TOP RIGHT LANGUAGE SELECTOR */
+        .top-lang-bar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            width: 100%;
+            margin-bottom: -6px;
+        }
+
+        .lang-select {
+            background: rgba(0, 0, 0, 0.6);
+            color: var(--neon-blue);
+            border: 1px solid var(--neon-blue);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+            outline: none;
+        }
+
+        .lang-select option {
+            background: #11141d;
+            color: #fff;
+        }
+
+        /* ENHANCED HEADER CARD */
+        .header-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 22px 18px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.7), inset 0 1px 2px rgba(255,255,255,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .header-card h1 {
+            font-size: 22px;
+            font-weight: 900;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(to right, #fff, var(--neon-blue), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .welcome-text {
+            font-size: 13px;
+            color: var(--success-color);
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .seller-info-row {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .key-box {
+            background: rgba(0,0,0,0.4);
+            border: 1px dashed var(--neon-blue);
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: monospace;
+            font-size: 12px;
+            color: #fff;
+        }
+
+        .owner-contact-box {
+            background: rgba(0, 243, 255, 0.05);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            border-radius: 12px;
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #fff;
+        }
+
+        .btn-copy {
+            background: linear-gradient(135deg, #00f3ff, #0072ff);
+            color: #000;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: 800;
+            cursor: pointer;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 10px rgba(0,243,255,0.3);
+            transition: 0.2s ease;
+        }
+        .btn-copy:active { transform: scale(0.95); }
+
+        .wallet-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 18px;
+            border: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        .money-val { font-size: 28px; font-weight: 900; color: var(--success-color); text-shadow: 0 0 12px rgba(56,239,125,0.3); }
+        .money-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+
+        .btn-add-device {
+            background: linear-gradient(135deg, #ff4a4a, #990000);
+            color: #fff;
+            border: none;
+            padding: 15px;
+            border-radius: 14px;
+            font-weight: 900;
+            font-size: 14px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            box-shadow: 0 4px 20px rgba(255,74,74,0.3);
+            transition: 0.2s ease;
+        }
+        .btn-add-device:active { transform: scale(0.98); }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .category-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+
+        .category-card:hover { transform: translateY(-3px); }
+
+        .card-normal { border-bottom: 4px solid var(--neon-blue); }
+        .card-vip { border-bottom: 4px solid #ffd700; }
+
+        .card-icon { font-size: 26px; }
+        .card-title { font-size: 14px; font-weight: 800; text-transform: uppercase; }
+        .card-count { font-size: 11px; color: var(--text-dim); }
+
+        .full-screen-panel {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .panel-header h2 { font-size: 18px; font-weight: 900; text-transform: uppercase; }
+        .btn-back {
+            background: rgba(255,255,255,0.1); color: #fff; border: none;
+            padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer;
+        }
+
+        /* SEARCH INPUT STYLING */
+        .search-container {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .search-input {
+            width: 100%;
+            background: #090b11;
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 13px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            transition: 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 12px rgba(0,243,255,0.3);
+        }
+
+        .user-card {
+            background: var(--glass-bg);
+            border-radius: 16px;
+            padding: 14px;
+            border: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+
+        .badge { padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+        .badge-approved { background: rgba(56,239,125,0.15); color: var(--success-color); border: 1px solid rgba(56,239,125,0.3); }
+        .badge-banned { background: rgba(255,74,74,0.15); color: var(--primary-color); border: 1px solid rgba(255,74,74,0.3); }
+
+        .action-btn-row { display: flex; gap: 8px; margin-top: 6px; }
+        .action-btn { flex: 1; padding: 9px; border-radius: 8px; border: none; font-weight: 800; cursor: pointer; font-size: 11px; text-transform: uppercase; }
+        .btn-ban { background: rgba(241,196,15,0.2); color: var(--warning-color); border: 1px solid rgba(241,196,15,0.4); }
+        .btn-delete { background: rgba(255,74,74,0.2); color: var(--primary-color); border: 1px solid rgba(255,74,74,0.4); }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 7, 12, 0.96);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            display: none; justify-content: center; align-items: center;
+            padding: 20px; 
+            z-index: 99990;
+        }
+
+        .top-alert-overlay {
+            z-index: 999999 !important;
+        }
+
+        .modal-card {
+            background: #11141d;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            padding: 22px;
+            max-width: 390px; width: 100%;
+            display: flex; flex-direction: column; gap: 14px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+        }
+
+        .spinner-loader {
+            width: 50px; height: 50px;
+            border: 5px solid rgba(0, 243, 255, 0.1);
+            border-top: 5px solid var(--neon-blue);
+            border-radius: 50%;
+            margin: 0 auto;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .modal-card input, .modal-card select {
+            background: #090b11;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 14px; border-radius: 12px; color: #fff;
+            width: 100%; text-align: center; font-size: 13px;
+        }
+
+        .pkg-select-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 12px; border-radius: 12px; color: #fff;
+            cursor: pointer; text-align: left; margin-bottom: 8px;
+            transition: 0.2s ease;
+        }
+        .pkg-select-btn:hover { border-color: var(--neon-blue); background: rgba(0,243,255,0.05); }
+
+        .btn-modal-close {
+            background: rgba(255,255,255,0.08); color: #fff;
+            border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; cursor: pointer; font-weight: 700; width: 100%;
+        }
+
+        .btn-modal-confirm {
+            background: linear-gradient(135deg, #38ef7d, #11998e);
+            color: #000; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: 900; width: 100%; text-transform: uppercase;
+        }
+
+        .warning-notice-box {
+            background: rgba(255, 74, 74, 0.1);
+            border: 1px dashed rgba(255, 74, 74, 0.4);
+            border-radius: 14px;
+            padding: 12px;
+            font-size: 11.5px;
+            color: #ff8888;
+            line-height: 1.5;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SYSTEM INITIAL CHECKING OVERLAY -->
+    <div id="systemCheckingOverlay" class="modal-overlay" style="display: flex;">
+        <div class="modal-card" style="border-top: 4px solid var(--neon-blue);">
+            <div class="spinner-loader"></div>
+            <h3 style="color: var(--neon-blue);" id="txtVerifyingTitle">VERIFYING SYSTEM</h3>
+            <p id="checkStatusText" style="font-size: 12px; color: var(--text-dim);">Detecting device identity & server node status...</p>
+        </div>
+    </div>
+
+    <!-- FIRST TIME REAL NAME REGISTRATION OVERLAY -->
+    <div id="nameRegisterOverlay" class="modal-overlay">
+        <div class="modal-card" style="border-top: 4px solid var(--warning-color);">
+            <h3 style="color: var(--warning-color);" id="txtEnterNameTitle">ENTER REAL NAME</h3>
+            
+            <div class="warning-notice-box" id="txtNameNotice">
+                <b>⚠️ 100% WARNING:</b> Please enter your <b>Official Real Full Name</b>. Providing false or fake names will forfeit all refund or account recovery rights.
+            </div>
+
+            <input type="text" id="sellerRealNameInput" placeholder="Enter Your Official Full Name">
+            
+            <button class="btn-modal-confirm" id="btnSubmitName" style="background: linear-gradient(135deg, #ffd700, #ff8800); color: #000;" onclick="startThreeStepNameConfirmation()">SUBMIT & PROCEED</button>
+        </div>
+    </div>
+
+    <!-- ACCOUNT NOT ACTIVATED / BANNED OVERLAY -->
+    <div id="notActivatedOverlay" class="modal-overlay">
+        <div class="modal-card" style="border-top: 4px solid var(--primary-color);">
+            <h3 id="overlayStatusTitle" style="color: var(--primary-color);">ACCOUNT NOT ACTIVATED</h3>
+            
+            <!-- OWNER CONTACT & CALL WARNING -->
+            <div class="warning-notice-box" id="txtAdminContactNotice" style="border-color: rgba(0,243,255,0.4); background: rgba(0,243,255,0.05); color: #e0f8ff;">
+                <b style="color: var(--neon-blue);">📞 ADMIN CONTACT:</b><br>
+                Contact Admin for Account Activation.<br>
+                <b>WhatsApp / Call: 6289600365</b><br>
+                <i>(Special Note: Please do not call to waste time. Only call when strictly necessary.)</i>
+            </div>
+
+            <div class="owner-contact-box">
+                <span style="font-family: monospace; font-size: 13px; font-weight: bold; color: var(--neon-blue);">6289600365</span>
+                <button class="btn-copy" id="btnCopyNum" onclick="copyText('6289600365', getTrans('numCopied'))">COPY NUMBER</button>
+            </div>
+
+            <p id="overlayStatusDesc" style="font-size: 12px; color: var(--text-dim); line-height: 1.4;">Send your Reseller Key below to Admin for approval.</p>
+
+            <div class="key-box" style="border-color: var(--primary-color);">
+                <span id="notActiveResellerKey">--</span>
+                <button class="btn-copy" id="btnCopyKeyOverlay" style="background: var(--primary-color); color: #fff;" onclick="copyResellerKey()">COPY KEY</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="reseller-container">
+        <!-- TOP RIGHT TRANSLATE DROPDOWN -->
+        <div class="top-lang-bar">
+            <select id="langSelect" class="lang-select" onchange="changeLanguage(this.value)">
+                <option value="en" selected>🌐 English</option>
+                <option value="bn">🌐 বাংলা (Bengali)</option>
+                <option value="hi">🌐 হিন্দি (Hindi)</option>
+            </select>
+        </div>
+
+        <!-- ENHANCED BIGGER HEADER CARD -->
+        <div class="header-card">
+            <h1>RESELLER CONSOLE</h1>
+            <div class="welcome-text" id="welcomeMsgDisplay">WELCOME TO TERMINAL</div>
+
+            <!-- Seller Real Name Box -->
+            <div class="seller-info-row">
+                <span style="color: var(--text-dim);" id="lblResellerName">Reseller Name:</span>
+                <b id="displaySellerRealName" style="color: #fff; font-size: 13px;">Loading...</b>
+            </div>
+
+            <!-- Reseller HWID Key Box -->
+            <div class="key-box">
+                <span id="resellerKeyDisplay">Loading Key...</span>
+                <button class="btn-copy" id="btnCopyMainKey" onclick="copyResellerKey()">COPY</button>
+            </div>
+
+            <!-- Owner Phone Number Box -->
+            <div class="owner-contact-box">
+                <span style="color: var(--text-dim); font-size: 11px;" id="lblOwnerSupport">Owner Support:</span>
+                <span style="font-family: monospace; font-weight: bold; color: var(--neon-blue);">6289600365</span>
+                <button class="btn-copy" id="btnCopySupportNum" style="padding: 4px 8px; font-size: 10px;" onclick="copyText('6289600365', getTrans('numCopied'))">COPY</button>
+            </div>
+        </div>
+
+        <!-- WALLET CARD (MONEY SYSTEM) -->
+        <div class="wallet-card">
+            <span class="money-val" id="resellerBalance">₹0.00</span>
+            <span class="money-label" id="lblAvailableWallet">Available Wallet Balance</span>
+        </div>
+
+        <!-- ADD DEVICE BUTTON -->
+        <button class="btn-add-device" id="btnAddDevice" onclick="openAddDeviceModal()">+ ADD NEW DEVICE</button>
+
+        <!-- CATEGORY GRID BOXES -->
+        <div class="category-grid">
+            <div class="category-card card-normal" onclick="openUserPanel('Normal')">
+                <div class="card-icon">⚡</div>
+                <div class="card-title" style="color: var(--neon-blue);" id="lblNormalUsers">NORMAL USERS</div>
+                <div class="card-count" id="normalUserCount">0 Devices</div>
+            </div>
+
+            <div class="category-card card-vip" onclick="openUserPanel('VIP')">
+                <div class="card-icon">👑</div>
+                <div class="card-title" style="color: #ffd700;" id="lblVipUsers">VIP USERS</div>
+                <div class="card-count" id="vipUserCount">0 Devices</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FULL SCREEN USER PANEL WITH SEARCH BAR -->
+    <div id="fullUserPanel" class="full-screen-panel">
+        <div class="panel-header">
+            <h2 id="panelTitle">DEVICES LIST</h2>
+            <button class="btn-back" id="btnBackPanel" onclick="closeUserPanel()">BACK</button>
+        </div>
+
+        <!-- REAL-TIME USER SEARCH BOX -->
+        <div class="search-container">
+            <input type="text" id="userSearchInput" class="search-input" placeholder="Search by Name or Device HWID..." oninput="filterUserList()">
+        </div>
+
+        <div id="panelUserList">Loading...</div>
+    </div>
+
+    <!-- DYNAMIC ALERT MODAL (TOPMOST LEVEL) -->
+    <div id="customAlertModal" class="modal-overlay top-alert-overlay">
+        <div class="modal-card" id="alertModalCard">
+            <h3 id="alertTitle">ALERT</h3>
+            <p id="alertDesc" style="font-size: 12.5px; color: var(--text-dim); line-height: 1.5;"></p>
+            <button class="btn-modal-close" onclick="closeModal('customAlertModal')">OK</button>
+        </div>
+    </div>
+
+    <!-- DYNAMIC CONFIRMATION MODAL (TOPMOST LEVEL) -->
+    <div id="customConfirmModal" class="modal-overlay top-alert-overlay">
+        <div class="modal-card" style="border-top: 4px solid var(--warning-color);">
+            <h3 style="color: var(--warning-color);" id="txtConfirmTitle">CONFIRM ACTION</h3>
+            <p id="confirmDesc" style="font-size: 12.5px; color: var(--text-dim); line-height: 1.5;"></p>
+            <div style="display: flex; gap: 10px; width: 100%;">
+                <button class="btn-modal-close" id="btnCancelConfirm" onclick="closeModal('customConfirmModal')">CANCEL</button>
+                <button class="btn-modal-confirm" id="confirmActionBtn">CONFIRM</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ZERO BALANCE MODAL -->
+    <div id="zeroBalanceModal" class="modal-overlay">
+        <div class="modal-card" style="border-top: 4px solid var(--primary-color);">
+            <h3 style="color: var(--primary-color);" id="txtZeroBalTitle">INSUFFICIENT BALANCE</h3>
+            <p style="font-size: 12px; color: var(--text-dim);" id="txtZeroBalDesc">Your wallet balance is ₹0. Copy your Reseller Key and send it to Admin for balance recharge.</p>
+            <div class="key-box">
+                <span id="zeroModalKey">--</span>
+                <button class="btn-copy" id="btnCopyZeroKey" onclick="copyResellerKey()">COPY</button>
+            </div>
+            <button class="btn-modal-close" id="btnCloseZeroBal" onclick="closeModal('zeroBalanceModal')">CLOSE</button>
+        </div>
+    </div>
+
+    <!-- ADD DEVICE MODAL -->
+    <div id="addDeviceModal" class="modal-overlay">
+        <div class="modal-card" style="border-top: 4px solid var(--neon-blue);">
+            <h3 style="color: var(--neon-blue);" id="txtVerifyHwidTitle">VERIFY HWID DEVICE</h3>
+            <p style="font-size: 11.5px; color: var(--text-dim);" id="txtVerifyHwidDesc">Paste the target player's Device ID (HWID) to check server existence.</p>
+            <input type="text" id="targetHwidInput" placeholder="Enter Target Device HWID">
+            <button class="btn-add-device" id="btnCheckProceed" style="background: linear-gradient(135deg, #00c6ff, #0072ff); box-shadow: 0 4px 15px rgba(0,114,255,0.3);" onclick="verifyAndProceedDevice()">CHECK & PROCEED</button>
+            <button class="btn-modal-close" id="btnCancelHwid" onclick="closeModal('addDeviceModal')">CANCEL</button>
+        </div>
+    </div>
+
+    <!-- SUBSCRIPTION SELECTION MODAL -->
+    <div id="subSelectionModal" class="modal-overlay">
+        <div class="modal-card" style="border-top: 4px solid var(--success-color);">
+            <h3 style="color: var(--success-color);" id="txtSelectSubTitle">SELECT SUBSCRIPTION</h3>
+            <p style="font-size: 11px; color: var(--neon-blue); font-family: monospace;" id="verifiedDeviceLabel">Device Verified!</p>
+
+            <select id="subTypeSelect" onchange="renderAvailablePackages()">
+                <option value="Normal">NORMAL ACCESS</option>
+                <option value="VIP">VIP ACCESS</option>
+            </select>
+
+            <div id="pkgListContainer" style="max-height: 200px; overflow-y: auto; text-align: left; width: 100%;"></div>
+
+            <button class="btn-modal-close" id="btnCancelSubSelect" onclick="closeModal('subSelectionModal')">CANCEL</button>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDppw6edpjC-vrNeENBpvYZegqDDTY--i0",
+            authDomain: "freefirehk-cdd73.firebaseapp.com",
+            databaseURL: "https://freefirehk-cdd73-default-rtdb.firebaseio.com",
+            projectId: "freefirehk-cdd73",
+            storageBucket: "freefirehk-cdd73.firebasestorage.app"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let resellerKey = "KEY_UNKNOWN";
+        let currentBalance = 0;
+        let selectedTargetHwid = "", selectedPkgType = "Normal";
+        let currentLang = "en";
+        let rawSellerName = "";
+
+        /* ---------------- DYNAMIC LANGUAGE DICTIONARY ---------------- */
+        const translations = {
+            en: {
+                verifyingTitle: "VERIFYING SYSTEM",
+                verifyingDesc: "Detecting device identity & server node status...",
+                enterNameTitle: "ENTER REAL NAME",
+                nameNotice: "<b>⚠️ 100% WARNING:</b> Please enter your <b>Official Real Full Name</b>. Providing false or fake names will forfeit all refund or account recovery rights.",
+                namePlaceholder: "Enter Your Official Full Name",
+                submitBtn: "SUBMIT & PROCEED",
+                adminContactNotice: "<b>📞 ADMIN CONTACT:</b><br>Contact Admin for Account Activation.<br><b>WhatsApp / Call: 6289600365</b><br><i>(Special Note: Please do not call to waste time. Only call when strictly necessary.)</i>",
+                copyNumber: "COPY NUMBER",
+                copyKey: "COPY KEY",
+                copy: "COPY",
+                accNotActivated: "ACCOUNT NOT ACTIVATED",
+                accBanned: "ACCOUNT BANNED",
+                sendKeyDesc: "Send your Reseller Key below to Admin for approval.",
+                bannedDesc: "Your Reseller account node has been permanently banned by Administrator.",
+                welcome: "WELCOME TO TERMINAL",
+                resellerNameLabel: "Reseller Name:",
+                userNameLabel: "User Name:",
+                lastActiveLabel: "Last Active:",
+                ownerSupportLabel: "Owner Support:",
+                availableWallet: "Available Wallet Balance",
+                addDeviceBtn: "+ ADD NEW DEVICE",
+                normalUsers: "NORMAL USERS",
+                vipUsers: "VIP USERS",
+                devices: "Devices",
+                back: "BACK",
+                devicesList: "DEVICES LIST",
+                noDevices: "No devices found under this category.",
+                searchPlaceholder: "Search by Name or Device HWID...",
+                cancel: "CANCEL",
+                confirm: "CONFIRM",
+                confirmAction: "CONFIRM ACTION",
+                insufficientBal: "INSUFFICIENT BALANCE",
+                zeroBalDesc: "Your wallet balance is ₹0. Copy your Reseller Key and send it to Admin for balance recharge.",
+                close: "CLOSE",
+                verifyHwidTitle: "VERIFY HWID DEVICE",
+                verifyHwidDesc: "Paste the target player's Device ID (HWID) to check server existence.",
+                hwidPlaceholder: "Enter Target Device HWID",
+                checkProceed: "CHECK & PROCEED",
+                selectSubTitle: "SELECT SUBSCRIPTION",
+                numCopied: "Owner phone number copied!",
+                keyCopied: "Reseller Key copied to clipboard successfully.",
+                reqName: "Please enter your real full name first!",
+                confStep1: "CONFIRMATION (1/3): Is \"{name}\" your 100% official real name?",
+                confStep2: "CONFIRMATION (2/3): Double Check! Fake name will lose refund rights. Confirm Name: \"{name}\"?",
+                confStep3: "FINAL CONFIRMATION (3/3): Register \"{name}\" as your permanent Reseller Profile Name?",
+                nameRegSuccess: "Name registered! Now copy your Reseller Key and send to Admin for approval.",
+                alreadyActiveTitle: "ALREADY ACTIVE SUBSCRIPTION!",
+                alreadyActiveDesc: "This device ({hwid}) already has an active {pkg} subscription expiring on {exp}. You cannot assign a new subscription until the current plan expires!",
+                reqHwid: "Please enter target device HWID first!",
+                yourCost: "Your Cost:",
+                userPrice: "User Price:",
+                rules: "Rules:",
+                activateConfirm: "Activate {days} Days ({type}) for device {hwid}? ₹{cost} INR will be deducted.",
+                needMoreBal: "You need ₹{cost} INR to buy this package. Your balance is ₹{bal}",
+                successActivated: "Device access key activated! ₹{cost} deducted."
+            },
+            bn: {
+                verifyingTitle: "সিস্টেম যাচাই করা হচ্ছে",
+                verifyingDesc: "ডিভাইস আইডেন্টিটি এবং সার্ভার নোড স্ট্যাটাস চেক করা হচ্ছে...",
+                enterNameTitle: "আসল নাম লিখুন",
+                nameNotice: "<b>⚠️ ১০০% সতর্কতা:</b> অনুগ্রহ করে আপনার <b>নিজস্ব আসল নাম (Real Name)</b> প্রদান করুন। ভুল বা ফেক নাম দিলে পরবর্তীতে কোনো প্রকার রিফান্ড বা অ্যাকাউন্ট রিকভারি সুবিধা পাবেন না।",
+                namePlaceholder: "আপনার অফিশিয়াল নাম লিখুন",
+                submitBtn: "সাবমিট করে এগিয়ে যান",
+                adminContactNotice: "<b>📞 এডমিন কন্টাক্ট:</b><br>অ্যাকাউন্ট অ্যাক্টিভেশনের জন্য এডমিনের সাথে যোগাযোগ করুন।<br><b>WhatsApp / Call: 6289600365</b><br><i>(বিশেষ অনুরোধ: অযথা টাইম ওয়েস্ট করার জন্য কল করবেন না। শুধুমাত্র সত্যিই প্রয়োজন হলেই কল করুন।)</i>",
+                copyNumber: "নম্বর কপি করুন",
+                copyKey: "কী কপি করুন",
+                copy: "কপি",
+                accNotActivated: "অ্যাকাউন্ট অ্যাক্টিভেট করা নেই",
+                accBanned: "অ্যাকাউন্ট ব্যান করা হয়েছে",
+                sendKeyDesc: "অনুমোদনের জন্য নিচে আপনার রিসেলার কী (Key) এডমিনকে পাঠান।",
+                bannedDesc: "আপনার রিসেলার অ্যাকাউন্ট নোডটি এডমিন দ্বারা স্থায়ীভাবে ব্লক করা হয়েছে।",
+                welcome: "টার্মিনালে স্বাগতম",
+                resellerNameLabel: "রিসেলার নাম:",
+                userNameLabel: "ইউজারের নাম:",
+                lastActiveLabel: "লাস্ট একটিভ:",
+                ownerSupportLabel: "ওনার সাপোর্ট:",
+                availableWallet: "উপলব্ধ ওয়ালেট ব্যালেন্স",
+                addDeviceBtn: "+ নতুন ডিভাইস যোগ করুন",
+                normalUsers: "নরমাল ইউজার",
+                vipUsers: "ভিআইপি ইউজার",
+                devices: "ডিভাইস",
+                back: "ফিরে যান",
+                devicesList: "ডিভাইস তালিকা",
+                noDevices: "এই ক্যাটাগরিতে কোনো ডিভাইস পাওয়া যায়নি।",
+                searchPlaceholder: "নাম বা ডিভাইস HWID দিয়ে খুঁজুন...",
+                cancel: "বাতিল",
+                confirm: "কনফার্ম করুন",
+                confirmAction: "নিশ্চিতকরণ অনুরোধ",
+                insufficientBal: "অপর্যাপ্ত ব্যালেন্স",
+                zeroBalDesc: "আপনার ওয়ালেট ব্যালেন্স ₹০। আপনার রিসেলার কী কপি করে ওয়ালেট রিচার্জের জন্য এডমিনকে পাঠান।",
+                close: "বন্ধ করুন",
+                verifyHwidTitle: "HWID ডিভাইস যাচাই করুন",
+                verifyHwidDesc: "টার্গেট প্লেয়ারের ডিভাইস আইডি (HWID) পেস্ট করে সার্ভার স্ট্যাটাস চেক করুন।",
+                hwidPlaceholder: "টার্গেট ডিভাইসের HWID লিখুন",
+                checkProceed: "যাচাই করে এগিয়ে যান",
+                selectSubTitle: "সাবস্ক্রিপশন নির্বাচন করুন",
+                numCopied: "ওনারের ফোন নম্বর কপি করা হয়েছে!",
+                keyCopied: "রিসেলার কী ক্লিপবোর্ডে কপি করা হয়েছে।",
+                reqName: "অনুগ্রহ করে প্রথমে আপনার আসল পুরো নাম লিখুন!",
+                confStep1: "কনফার্মেশন (১/৩): \"{name}\" কি আপনার ১০০% অফিশিয়াল আসল নাম?",
+                confStep2: "কনফার্মেশন (২/৩): ভালো করে দেখে নিন! ফেক নাম দিলে রিফান্ড পাওয়ার অধিকার হারাবেন। নাম নিশ্চিত করুন: \"{name}\"?",
+                confStep3: "ফাইনাল কনফার্মেশন (৩/৩): \"{name}\"-কে আপনার স্থায়ী রিসেলার প্রোফাইল নাম হিসেবে সেভ করবেন?",
+                nameRegSuccess: "নাম নিবন্ধিত হয়েছে! এখন আপনার রিসেলার কী কপি করে অনুমোদনের জন্য এডমিনকে পাঠান।",
+                alreadyActiveTitle: "ইতিমধ্যে সক্রিয় সাবস্ক্রিপশন রয়েছে!",
+                alreadyActiveDesc: "এই ডিভাইসে ({hwid}) ইতিমধ্যে একটি সক্রিয় {pkg} সাবস্ক্রিপশন রয়েছে যার মেয়াদ শেষ হবে {exp}-এ। বর্তমান প্ল্যানের মেয়াদ শেষ না হওয়া পর্যন্ত আপনি নতুন সাবস্ক্রিপশন দিতে পারবেন না!",
+                reqHwid: "অনুগ্রহ করে প্রথমে টার্গেট ডিভাইসের HWID লিখুন!",
+                yourCost: "আপনার খরচ:",
+                userPrice: "ইউজার প্রাইস:",
+                rules: "নিয়মাবলী:",
+                activateConfirm: "ডিভাইস {hwid}-এর জন্য {days} দিন ({type}) অ্যাক্টিভেট করবেন? ₹{cost} INR কেটে নেওয়া হবে।",
+                needMoreBal: "এই প্যাকেজটি কিনতে আপনার ₹{cost} INR প্রয়োজন। আপনার ব্যালেন্স হলো ₹{bal}",
+                successActivated: "ডিভাইস অ্যাক্সেস কী অ্যাক্টিভেট হয়েছে! ₹{cost} কেটে নেওয়া হয়েছে।"
+            },
+            hi: {
+                verifyingTitle: "सिस्टम सत्यापन हो रहा है",
+                verifyingDesc: "डिवाइस पहचान और सर्वर नोड स्थिति का पता लगाया जा रहा है...",
+                enterNameTitle: "असली नाम दर्ज करें",
+                nameNotice: "<b>⚠️ 100% चेतावनी:</b> कृपया अपना <b>आधिकारिक असली नाम (Real Name)</b> दर्ज करें। गलत या फर्जी नाम देने पर रिफंड या अकाउंट रिकवरी का अधिकार समाप्त हो जाएगा।",
+                namePlaceholder: "अपना आधिकारिक पूरा नाम दर्ज करें",
+                submitBtn: "सबमिट करें और आगे बढ़ें",
+                adminContactNotice: "<b>📞 एडमिन संपर्क:</b><br>अकाउंट एक्टिवेशन के लिए एडमिन से संपर्क करें।<br><b>WhatsApp / Call: 6289600365</b><br><i>(विशेष अनुरोध: कृपया समय बर्बाद करने के लिए कॉल न करें। केवल आवश्यकता होने पर ही कॉल करें।)</i>",
+                copyNumber: "नंबर कॉपी करें",
+                copyKey: "की कॉपी करें",
+                copy: "कॉपी",
+                accNotActivated: "अकाउंट एक्टिवेट नहीं है",
+                accBanned: "अकाउंट बैन कर दिया गया है",
+                sendKeyDesc: "अनुमोदन के लिए अपनी रिसेलर की (Key) नीचे एडमिन को भेजें।",
+                bannedDesc: "आपका रिसेलर अकाउंट नोड एडमिन द्वारा स्थायी रूप से ब्लॉक कर दिया गया है।",
+                welcome: "टर्मिनल में आपका स्वागत है",
+                resellerNameLabel: "रिसेलर का नाम:",
+                userNameLabel: "यूज़र का नाम:",
+                lastActiveLabel: "अंतिम सक्रिय:",
+                ownerSupportLabel: "ओनर सपोर्ट:",
+                availableWallet: "उपलब्ध वॉलेट बैलेंस",
+                addDeviceBtn: "+ नया डिवाइस जोड़ें",
+                normalUsers: "नॉर्मल यूज़र",
+                vipUsers: "वीआईपी यूज़र",
+                devices: "डिवाइस",
+                back: "वापस जाएं",
+                devicesList: "डिवाइस सूची",
+                noDevices: "इस श्रेणी में कोई डिवाइस नहीं मिला।",
+                searchPlaceholder: "नाम या डिवाइस HWID से खोजें...",
+                cancel: "रद्द करें",
+                confirm: "पुष्टि करें",
+                confirmAction: "पुष्टि करें",
+                insufficientBal: "अपर्याप्त बैलेंस",
+                zeroBalDesc: "आपका वॉलेट बैलेंस ₹0 है। अपनी रिसेलर की कॉपी करें और रिचार्ज के लिए एडमिन को भेजें।",
+                close: "बंद करें",
+                verifyHwidTitle: "HWID डिवाइस सत्यापित करें",
+                verifyHwidDesc: "सर्वर स्थिति जांचने के लिए लक्षित खिलाड़ी की डिवाइस आईडी (HWID) पेस्ट करें।",
+                hwidPlaceholder: "टारगेट डिवाइस HWID दर्ज करें",
+                checkProceed: "जांचें और आगे बढ़ें",
+                selectSubTitle: "सब्सक्रिप्शन चुनें",
+                numCopied: "ओनर का फोन नंबर कॉपी हो गया!",
+                keyCopied: "रिसेलर की क्लिपबोर्ड पर कॉपी हो गई।",
+                reqName: "कृपया पहले अपना असली पूरा नाम दर्ज करें!",
+                confStep1: "पुष्टि (1/3): क्या \"{name}\" आपका 100% आधिकारिक असली नाम है?",
+                confStep2: "पुष्टि (2/3): दोबारा जांचें! फर्जी नाम देने पर रिफंड का अधिकार खो देंगे। नाम की पुष्टि करें: \"{name}\"?",
+                confStep3: "अंतिम पुष्टि (3/3): \"{name}\" को अपने स्थायी रिसेलर प्रोफाइल नाम के रूप में दर्ज करें?",
+                nameRegSuccess: "नाम दर्ज हो गया! अब अपनी रिसेलर की कॉपी करें और एक्टिवेशन के लिए एडमिन को भेजें।",
+                alreadyActiveTitle: "पहले से ही सक्रिय सब्सक्रिप्शन है!",
+                alreadyActiveDesc: "इस डिवाइस ({hwid}) में पहले से ही एक सक्रिय {pkg} सब्सक्रिप्शन है जो {exp} को समाप्त होगा। वर्तमान प्लान समाप्त होने तक आप नया प्लान नहीं जोड़ सकते!",
+                reqHwid: "कृपया पहले टारगेट डिवाइस का HWID दर्ज करें!",
+                yourCost: "आपकी लागत:",
+                userPrice: "यूज़र प्राइस:",
+                rules: "नियम:",
+                activateConfirm: "डिवाइस {hwid} के लिए {days} दिन ({type}) एक्टिवेट करें? ₹{cost} INR काट लिया जाएगा।",
+                needMoreBal: "इस पैकेज को खरीदने के लिए आपको ₹{cost} INR की आवश्यकता है। आपका बैलेंस ₹{bal} है।",
+                successActivated: "डिवाइस एक्सेस की एक्टिवेट हो गई! ₹{cost} काट लिया गया।"
+            }
+        };
+
+        function getTrans(key) {
+            return (translations[currentLang] && translations[currentLang][key]) ? translations[currentLang][key] : translations['en'][key];
+        }
+
+        /* ---------------- DYNAMIC LANGUAGE CHANGE FUNCTION ---------------- */
+        function changeLanguage(langCode) {
+            currentLang = langCode;
+            
+            document.getElementById('txtVerifyingTitle').innerText = getTrans('verifyingTitle');
+            document.getElementById('checkStatusText').innerText = getTrans('verifyingDesc');
+            document.getElementById('txtEnterNameTitle').innerText = getTrans('enterNameTitle');
+            document.getElementById('txtNameNotice').innerHTML = getTrans('nameNotice');
+            document.getElementById('sellerRealNameInput').placeholder = getTrans('namePlaceholder');
+            document.getElementById('btnSubmitName').innerText = getTrans('submitBtn');
+            document.getElementById('txtAdminContactNotice').innerHTML = getTrans('adminContactNotice');
+            document.getElementById('btnCopyNum').innerText = getTrans('copyNumber');
+            document.getElementById('btnCopyKeyOverlay').innerText = getTrans('copyKey');
+            
+            if(document.getElementById('overlayStatusTitle').innerText.includes("NOT ACTIVATED") || document.getElementById('overlayStatusTitle').innerText.includes("অ্যাক্টিভেট") || document.getElementById('overlayStatusTitle').innerText.includes("एक्टिवेट")) {
+                document.getElementById('overlayStatusTitle').innerText = getTrans('accNotActivated');
+                document.getElementById('overlayStatusDesc').innerText = getTrans('sendKeyDesc');
+            } else {
+                document.getElementById('overlayStatusTitle').innerText = getTrans('accBanned');
+                document.getElementById('overlayStatusDesc').innerText = getTrans('bannedDesc');
+            }
+
+            document.getElementById('welcomeMsgDisplay').innerText = rawSellerName ? (getTrans('welcome').replace("TERMINAL", rawSellerName.toUpperCase())) : getTrans('welcome');
+            document.getElementById('lblResellerName').innerText = getTrans('resellerNameLabel');
+            document.getElementById('btnCopyMainKey').innerText = getTrans('copy');
+            document.getElementById('lblOwnerSupport').innerText = getTrans('ownerSupportLabel');
+            document.getElementById('btnCopySupportNum').innerText = getTrans('copy');
+            document.getElementById('lblAvailableWallet').innerText = getTrans('availableWallet');
+            document.getElementById('btnAddDevice').innerText = getTrans('addDeviceBtn');
+            document.getElementById('lblNormalUsers').innerText = getTrans('normalUsers');
+            document.getElementById('lblVipUsers').innerText = getTrans('vipUsers');
+            document.getElementById('btnBackPanel').innerText = getTrans('back');
+            document.getElementById('userSearchInput').placeholder = getTrans('searchPlaceholder');
+            document.getElementById('txtConfirmTitle').innerText = getTrans('confirmAction');
+            document.getElementById('btnCancelConfirm').innerText = getTrans('cancel');
+            document.getElementById('confirmActionBtn').innerText = getTrans('confirm');
+            document.getElementById('txtZeroBalTitle').innerText = getTrans('insufficientBal');
+            document.getElementById('txtZeroBalDesc').innerText = getTrans('zeroBalDesc');
+            document.getElementById('btnCopyZeroKey').innerText = getTrans('copy');
+            document.getElementById('btnCloseZeroBal').innerText = getTrans('close');
+            document.getElementById('txtVerifyHwidTitle').innerText = getTrans('verifyHwidTitle');
+            document.getElementById('txtVerifyHwidDesc').innerText = getTrans('verifyHwidDesc');
+            document.getElementById('targetHwidInput').placeholder = getTrans('hwidPlaceholder');
+            document.getElementById('btnCheckProceed').innerText = getTrans('checkProceed');
+            document.getElementById('btnCancelHwid').innerText = getTrans('cancel');
+            document.getElementById('txtSelectSubTitle').innerText = getTrans('selectSubTitle');
+            document.getElementById('btnCancelSubSelect').innerText = getTrans('cancel');
+        }
+
+        function showCustomAlert(title, text, color) {
+            document.getElementById('alertTitle').innerText = title;
+            document.getElementById('alertTitle').style.color = color || '#00f3ff';
+            document.getElementById('alertDesc').innerText = text;
+            document.getElementById('alertModalCard').style.borderTop = `4px solid ${color || '#00f3ff'}`;
+            document.getElementById('customAlertModal').style.display = 'flex';
+        }
+
+        function showCustomConfirm(text, onConfirmCallback) {
+            document.getElementById('confirmDesc').innerText = text;
+            document.getElementById('confirmActionBtn').onclick = function() {
+                closeModal('customConfirmModal');
+                onConfirmCallback();
+            };
+            document.getElementById('customConfirmModal').style.display = 'flex';
+        }
+
+        function copyText(textVal, alertMsg) {
+            navigator.clipboard.writeText(textVal);
+            showCustomAlert(getTrans('copy'), alertMsg, "#38ef7d");
+        }
+
+        function formatDisplayDateTime(isoStr) {
+            if(!isoStr) return "Never Active";
+            try {
+                const d = new Date(isoStr);
+                if(isNaN(d.getTime())) return isoStr;
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const year = d.getFullYear();
+                let hrs = d.getHours();
+                const mins = String(d.getMinutes()).padStart(2, '0');
+                const ampm = hrs >= 12 ? 'PM' : 'AM';
+                hrs = hrs % 12 || 12;
+                return `${day}/${month}/${year} ${String(hrs).padStart(2, '0')}:${mins} ${ampm}`;
+            } catch(e) {
+                return isoStr;
+            }
+        }
+
+        /* ---------------- SIMPLE DEVICE DETECTION (WOLF-XXXX FORMAT) ---------------- */
+        function getDeviceUniqueKey() {
+            const str = navigator.userAgent + screen.width + screen.height + (navigator.hardwareConcurrency || 4) + (Intl.DateTimeFormat().resolvedOptions().timeZone || '');
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = ((hash << 5) - hash) + str.charCodeAt(i);
+                hash |= 0;
+            }
+            const hex = Math.abs(hash).toString(16).padStart(4, '0').toUpperCase().substring(0, 4);
+            return "WOLF-" + hex;
+        }
+
+        function initResellerFramework() {
+            if (!navigator.onLine) {
+                document.getElementById('checkStatusText').innerText = "NO INTERNET CONNECTION! Please connect to Wi-Fi or Data.";
+                document.getElementById('checkStatusText').style.color = "#ff4a4a";
+                return;
+            }
+
+            resellerKey = getDeviceUniqueKey();
+            
+            document.getElementById('resellerKeyDisplay').innerText = resellerKey;
+            document.getElementById('notActiveResellerKey').innerText = resellerKey;
+            document.getElementById('zeroModalKey').innerText = resellerKey;
+
+            db.ref("resellers").child(resellerKey).on("value", (snapshot) => {
+                document.getElementById('systemCheckingOverlay').style.display = 'none';
+                const data = snapshot.val();
+                
+                if(!data || !data.seller_name) {
+                    document.getElementById('nameRegisterOverlay').style.display = 'flex';
+                    return;
+                }
+
+                document.getElementById('nameRegisterOverlay').style.display = 'none';
+                rawSellerName = data.seller_name;
+                document.getElementById('displaySellerRealName').innerText = rawSellerName;
+                document.getElementById('welcomeMsgDisplay').innerText = getTrans('welcome').replace("TERMINAL", rawSellerName.toUpperCase());
+
+                if(data.is_approved !== true) {
+                    document.getElementById('overlayStatusTitle').innerText = getTrans('accNotActivated');
+                    document.getElementById('overlayStatusDesc').innerText = getTrans('sendKeyDesc');
+                    document.getElementById('notActivatedOverlay').style.display = 'flex';
+                    return;
+                }
+
+                if(data.status === "banned") {
+                    document.getElementById('overlayStatusTitle').innerText = getTrans('accBanned');
+                    document.getElementById('overlayStatusDesc').innerText = getTrans('bannedDesc');
+                    document.getElementById('notActivatedOverlay').style.display = 'flex';
+                    return;
+                }
+
+                document.getElementById('notActivatedOverlay').style.display = 'none';
+                currentBalance = parseFloat(data.balance || 0);
+                document.getElementById('resellerBalance').innerText = `₹${currentBalance.toFixed(2)}`;
+
+                if(currentBalance <= 0) {
+                    document.getElementById('zeroBalanceModal').style.display = 'flex';
+                }
+            });
+
+            updateDeviceCounts();
+        }
+
+        /* ---------------- 3-STEP REAL NAME CONFIRMATION LOGIC ---------------- */
+        function startThreeStepNameConfirmation() {
+            const name = document.getElementById('sellerRealNameInput').value.trim();
+            if(!name) {
+                showCustomAlert("REQUIRED", getTrans('reqName'), "#ff4a4a");
+                return;
+            }
+
+            const step1 = getTrans('confStep1').replace('{name}', name);
+            const step2 = getTrans('confStep2').replace('{name}', name);
+            const step3 = getTrans('confStep3').replace('{name}', name);
+
+            showCustomConfirm(step1, function() {
+                showCustomConfirm(step2, function() {
+                    showCustomConfirm(step3, function() {
+                        db.ref("resellers").child(resellerKey).update({
+                            seller_name: name,
+                            is_approved: false,
+                            balance: 0,
+                            created_date: new Date().toISOString()
+                        }).then(() => {
+                            closeModal('nameRegisterOverlay');
+                            showCustomAlert("SUCCESS", getTrans('nameRegSuccess'), "#38ef7d");
+                        });
+                    });
+                });
+            });
+        }
+
+        function copyResellerKey() {
+            navigator.clipboard.writeText(resellerKey);
+            showCustomAlert(getTrans('copy'), getTrans('keyCopied'), "#38ef7d");
+        }
+
+        function updateDeviceCounts() {
+            db.ref("users").orderByChild("added_by").equalTo(resellerKey).on("value", (snap) => {
+                const users = snap.val() || {};
+                let normalCount = 0, vipCount = 0;
+
+                for(let hwid in users) {
+                    if((users[hwid].package_type || "Normal").toUpperCase() === "VIP") vipCount++;
+                    else normalCount++;
+                }
+
+                document.getElementById('normalUserCount').innerText = `${normalCount} ${getTrans('devices')}`;
+                document.getElementById('vipUserCount').innerText = `${vipCount} ${getTrans('devices')}`;
+            });
+        }
+
+        /* ---------------- FIXED USER LIST WITH REAL NAME & LAST ONLINE TIME ---------------- */
+        function openUserPanel(type) {
+            document.getElementById('panelTitle').innerText = `${type} ${getTrans('devicesList')}`;
+            document.getElementById('panelTitle').style.color = type === 'VIP' ? '#ffd700' : '#00f3ff';
+            document.getElementById('userSearchInput').value = "";
+
+            db.ref("users").orderByChild("added_by").equalTo(resellerKey).once("value", (snap) => {
+                const container = document.getElementById('panelUserList');
+                container.innerHTML = "";
+                const users = snap.val();
+
+                if(!users) {
+                    container.innerHTML = `<p style='color:var(--text-dim); text-align:center;'>${getTrans('noDevices')}</p>`;
+                    document.getElementById('fullUserPanel').style.display = 'flex';
+                    return;
+                }
+
+                let found = false;
+                for(let hwid in users) {
+                    const u = users[hwid];
+                    const pType = (u.package_type || "Normal").toUpperCase();
+
+                    if(pType === type.toUpperCase()) {
+                        found = true;
+
+                        let regDateStr = "N/A";
+                        if(u.registered_date) {
+                            regDateStr = formatDisplayDateTime(u.registered_date);
+                        }
+
+                        // LAST ONLINE / LOGGED IN TIME FETCH
+                        const lastActiveStr = formatDisplayDateTime(u.last_online || u.registered_date);
+                        const userName = u.user_name || "N/A";
+
+                        const div = document.createElement('div');
+                        div.className = "user-card";
+                        div.setAttribute('data-search', `${hwid.toLowerCase()} ${userName.toLowerCase()}`);
+                        div.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-family:monospace; font-weight:bold; font-size:12px; color:var(--neon-blue);">HWID: ${hwid}</span>
+                                <span class="badge badge-${u.status}">${u.status}</span>
+                            </div>
+                            <div style="color:var(--text-dim); margin-top:2px;">${getTrans('userNameLabel')} <b style="color:var(--neon-blue); font-size:13px;">${userName}</b></div>
+                            <div style="color:var(--text-dim);">${getTrans('lastActiveLabel')} <b style="color:#ffd700; font-size:11.5px;">${lastActiveStr}</b></div>
+                            <div style="color:var(--text-dim);">Device Model: <b style="color:#fff;">${u.device_model || 'Unknown'} (${u.android_version || 'N/A'})</b></div>
+                            <div style="color:var(--text-dim);">Registered On: <b style="color:var(--success-color);">${regDateStr}</b></div>
+                            <div style="color:var(--text-dim);">Expires On: <b style="color:var(--primary-color);">${u.expiry_date || 'N/A'}</b></div>
+                            
+                            <div class="action-btn-row">
+                                ${u.status !== 'banned' ? `<button class="action-btn btn-ban" onclick="toggleBan('${hwid}', 'banned')">BAN</button>` : `<button class="action-btn btn-ban" style="background:rgba(56,239,125,0.2); color:var(--success-color);" onclick="toggleBan('${hwid}', 'approved')">UNBAN</button>`}
+                                <button class="action-btn btn-delete" onclick="deleteMyUser('${hwid}')">DELETE</button>
+                            </div>
+                        `;
+                        container.appendChild(div);
+                    }
+                }
+
+                if(!found) {
+                    container.innerHTML = `<p style='color:var(--text-dim); text-align:center;'>${getTrans('noDevices')}</p>`;
+                }
+
+                document.getElementById('fullUserPanel').style.display = 'flex';
+            });
+        }
+
+        /* ---------------- REAL-TIME USER SEARCH FILTER ---------------- */
+        function filterUserList() {
+            const query = document.getElementById('userSearchInput').value.trim().toLowerCase();
+            const cards = document.querySelectorAll('.user-card');
+
+            cards.forEach(card => {
+                const searchData = card.getAttribute('data-search') || '';
+                if(searchData.includes(query)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function closeUserPanel() { document.getElementById('fullUserPanel').style.display = 'none'; }
+
+        function openAddDeviceModal() {
+            document.getElementById('targetHwidInput').value = "";
+            document.getElementById('addDeviceModal').style.display = 'flex';
+        }
+
+        /* ---------------- ACTIVE SUBSCRIPTION CHECK & BLOCKING GUARD ---------------- */
+        function verifyAndProceedDevice() {
+            const hwid = document.getElementById('targetHwidInput').value.trim();
+            if(!hwid) {
+                showCustomAlert("REQUIRED", getTrans('reqHwid'), "#ff4a4a");
+                return;
+            }
+
+            db.ref("users").child(hwid).once("value", (snap) => {
+                const user = snap.val();
+
+                if(user && user.status === "approved" && user.expiry_date) {
+                    const expiryDate = new Date(user.expiry_date);
+                    const today = new Date();
+
+                    if(expiryDate > today) {
+                        const msg = getTrans('alreadyActiveDesc')
+                            .replace('{hwid}', hwid)
+                            .replace('{pkg}', user.package_type || 'Normal')
+                            .replace('{exp}', user.expiry_date);
+
+                        showCustomAlert(getTrans('alreadyActiveTitle'), msg, "#ff4a4a");
+                        return;
+                    }
+                }
+
+                selectedTargetHwid = hwid;
+                
+                if(!user) {
+                    db.ref("users").child(hwid).set({
+                        device_model: "Registered by Reseller",
+                        android_version: "N/A",
+                        status: "pending",
+                        registered_date: new Date().toISOString()
+                    });
+                }
+
+                closeModal('addDeviceModal');
+                document.getElementById('verifiedDeviceLabel').innerText = "HWID: " + hwid;
+                renderAvailablePackages();
+                document.getElementById('subSelectionModal').style.display = 'flex';
+            });
+        }
+
+        /* ---------------- FIXED DISPLAY BOTH USER PRICE & RESELLER COST ---------------- */
+        function renderAvailablePackages() {
+            const type = document.getElementById('subTypeSelect').value;
+            selectedPkgType = type;
+
+            db.ref("package_settings").once("value", (snap) => {
+                const container = document.getElementById('pkgListContainer');
+                container.innerHTML = "";
+                const data = snap.val();
+
+                if(!data) {
+                    container.innerHTML = "<p style='font-size:11px; text-align:center;'>No active server packages found.</p>";
+                    return;
+                }
+
+                for(let k in data) {
+                    const p = data[k];
+                    if((p.type || "Normal").toUpperCase() === type.toUpperCase()) {
+                        const userPrice = p.price !== undefined ? parseFloat(p.price) : 0;
+                        const resellerPrice = p.reseller_price !== undefined ? parseFloat(p.reseller_price) : userPrice;
+
+                        const div = document.createElement('div');
+                        div.className = 'pkg-select-btn';
+                        div.innerHTML = `
+                            <div style="font-weight:bold; color:#fff; display:flex; justify-content:space-between; align-items:center;">
+                                <span>${p.days} Days (${p.type})</span>
+                                <span style="color:var(--success-color); font-size:12px;">${getTrans('yourCost')} ₹${resellerPrice}</span>
+                            </div>
+                            <div style="font-size:11px; color:var(--neon-blue); margin-top:3px;">
+                                ${getTrans('userPrice')} ₹${userPrice} INR
+                            </div>
+                            <div style="font-size:10.5px; color:var(--text-dim); margin-top:2px;">${getTrans('rules')} ${p.description}</div>
+                        `;
+                        div.onclick = () => confirmPackagePurchase(p.days, type, resellerPrice);
+                        container.appendChild(div);
+                    }
+                }
+            });
+        }
+
+        function confirmPackagePurchase(days, type, cost) {
+            if(currentBalance < cost) {
+                const msg = getTrans('needMoreBal').replace('{cost}', cost).replace('{bal}', currentBalance);
+                showCustomAlert(getTrans('insufficientBal'), msg, "#ff4a4a");
+                return;
+            }
+
+            const confirmMsg = getTrans('activateConfirm')
+                .replace('{days}', days)
+                .replace('{type}', type)
+                .replace('{hwid}', selectedTargetHwid)
+                .replace('{cost}', cost);
+
+            showCustomConfirm(confirmMsg, function() {
+                const newBalance = currentBalance - cost;
+                const expDate = new Date();
+                expDate.setDate(expDate.getDate() + parseInt(days));
+
+                const nowISO = new Date().toISOString();
+
+                db.ref("resellers").child(resellerKey).update({ balance: newBalance });
+
+                db.ref("users").child(selectedTargetHwid).update({
+                    status: "approved",
+                    package_type: type,
+                    expiry_date: expDate.toISOString().split('T')[0],
+                    registered_date: nowISO,
+                    added_by: resellerKey
+                }).then(() => {
+                    closeModal('subSelectionModal');
+                    const successMsg = getTrans('successActivated').replace('{cost}', cost);
+                    showCustomAlert("SUCCESS!", successMsg, "#38ef7d");
+                    updateDeviceCounts();
+                });
+            });
+        }
+
+        function toggleBan(hwid, newStatus) {
+            db.ref("users").child(hwid).update({ status: newStatus }).then(() => {
+                openUserPanel(selectedPkgType);
+            });
+        }
+
+        function deleteMyUser(hwid) {
+            showCustomConfirm("Delete this device record permanently?", function() {
+                db.ref("users").child(hwid).remove().then(() => {
+                    openUserPanel(selectedPkgType);
+                    updateDeviceCounts();
+                });
+            });
+        }
+
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        window.onload = function() {
+            initResellerFramework();
+            changeLanguage('en');
+        };
+    </script>
+</body>
+</html>
